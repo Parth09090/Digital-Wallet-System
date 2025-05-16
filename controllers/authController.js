@@ -2,6 +2,10 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const health = async(req,res)=>{
+    res.status(200).json({message: "working"});
+}
+
 const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -13,7 +17,7 @@ const register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user : we will send the hashed passwrod
     const user = new User({ username, email, password: hashedPassword });
     await user.save();
 
@@ -27,11 +31,11 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
+    // Find user : if nout not found by email, => invalid emial
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid email or password' });
 
-    // Compare password
+    // Compare password : if email exist then comparing with the help of bcrypt.compare
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
@@ -46,4 +50,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+module.exports = { register, login,health };
