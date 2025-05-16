@@ -1,4 +1,3 @@
-//defining the user model 
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -18,6 +17,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  wallets: {
+    INR: { type: Number, default: 0 },
+    USD: { type: Number, default: 0 },
+    BTC: { type: Number, default: 0 },
+  },
+  transactions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Transaction',
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
