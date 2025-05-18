@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
-
+const { checkFraud } = require('../utils/fraudDetection');
 // Helper to validate currency
 const SUPPORTED_CURRENCIES = ['INR', 'USD', 'BTC'];
 
@@ -76,7 +76,8 @@ module.exports = {
         currency,
         date: new Date(),
       });
-
+      // Fraud check after logging the transaction
+      await checkFraud({ userId: req.user.userId, type: 'withdraw', amount });
       user.transactions.push(transaction._id);
       await user.save();
 
@@ -87,9 +88,9 @@ module.exports = {
     }
   },
 
-  transfer: async (req, res) => {
+  transfer : async (req, res) => {
     try {
-      const userId = req.user.userId;  // access userId from req.user;
+      const userId = req.user.userId;  // from authenticated user
       const { amount, currency, toUsername } = req.body;
 
       if (!amount || amount <= 0) {
@@ -112,6 +113,13 @@ module.exports = {
         return res.status(400).json({ message: 'Insufficient balance' });
       }
 
+      // Fraud detection before transfer
+      const isFraud = await checkFraud({ userId, type: 'transfer_out', amount });
+      if (isFraud) {
+        console.warn(`[FRAUD DETECTION] Blocking transfer due to fraud suspicion: User ${userId}`);
+        return res.status(403).json({ message: 'Transfer blocked due to suspicious activity' });
+      }
+
       // Deduct from sender
       fromUser.wallets[currency] -= amount;
       // Add to recipient
@@ -119,22 +127,20 @@ module.exports = {
 
       // Create transaction for sender
       const transactionFrom = await Transaction.create({
-        user: fromUser._id,
+        fromUser: fromUser._id,
         type: 'transfer_out',
         amount,
         currency,
-        date: new Date(),
-        details: { to: toUser.username },
+        description: `Transfer to ${toUser.username}`,
       });
 
       // Create transaction for recipient
       const transactionTo = await Transaction.create({
-        user: toUser._id,
+        toUser: toUser._id,
         type: 'transfer_in',
         amount,
         currency,
-        date: new Date(),
-        details: { from: fromUser.username },
+        description: `Transfer from ${fromUser.username}`,
       });
 
       fromUser.transactions.push(transactionFrom._id);

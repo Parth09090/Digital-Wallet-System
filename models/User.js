@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isAdmin: { 
+    type: Boolean, default: false 
+  },
+
   wallets: {
     INR: { type: Number, default: 0 },
     USD: { type: Number, default: 0 },
