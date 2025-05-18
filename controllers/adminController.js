@@ -10,13 +10,13 @@ exports.getFlaggedTransactions = async (req, res) => {
     const largeWithdrawals = await Transaction.find({
       type: "withdraw",
       amount: { $gte: 50000 }
-    }).populate("fromUser", "username email"); // Populate fromUser, not 'user'
+    }).populate("fromUser", "username email"); 
 
     // 2. Find users who made more than 3 transfers in the last minute
     const recentTransfers = await Transaction.aggregate([
       {
         $match: {
-          type: "transfer_out", // Use correct enum value
+          type: "transfer_out", 
           createdAt: { $gte: new Date(Date.now() - 60 * 1000) }
         }
       },
@@ -33,9 +33,9 @@ exports.getFlaggedTransactions = async (req, res) => {
       },
       {
         $lookup: {
-          from: "users",           // collection name in MongoDB (lowercase plural of model name)
-          localField: "_id",       // _id from $group = fromUser
-          foreignField: "_id",     // match to _id in users
+          from: "users",           
+          localField: "_id",      
+          foreignField: "_id",    
           as: "user"
         }
       },
