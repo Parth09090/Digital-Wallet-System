@@ -32,7 +32,6 @@ This project implements a multi-currency digital wallet system supporting INR, U
   - Block users who attempt more than 3 transfers within one minute  
   - Flag withdrawals exceeding ₹50,000  
 - Admin route to retrieve flagged transactions  
-- User blocking and unblocking functionality based on fraud detection  
 - Error handling and input validations  
 
 ---
